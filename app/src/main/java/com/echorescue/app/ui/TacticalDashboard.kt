@@ -36,70 +36,106 @@ fun TacticalDashboard(
     onStopVictimMode: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // Top Info Bar
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text("ECHØRESCUE", color = Color(0xFFFA4DF3), fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                Text("AUTONOMOUS RESCUE MESH V4.2", color = Color(0xFF00F3FF), fontSize = 10.sp, letterSpacing = 2.sp)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).background(Color(0xFF9DFF00), CircleShape))
-                Spacer(Modifier.width(8.dp))
-                Text("ONLINE", color = Color(0xFF9DFF00), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-
-        // Mode Selector
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFF0D1430)),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .clickable { onSelectRescueMode(RescueMode.Victim) }
-                    .background(if (state.rescueMode == RescueMode.Victim) Color(0x33FA4DF3) else Color.Transparent),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("VICTIM", color = if (state.rescueMode == RescueMode.Victim) Color(0xFFFA4DF3) else Color.White)
-            }
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .clickable { onSelectRescueMode(RescueMode.Rescuer) }
-                    .background(if (state.rescueMode == RescueMode.Rescuer) Color(0x3300F3FF) else Color.Transparent),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("RESCUER", color = if (state.rescueMode == RescueMode.Rescuer) Color(0xFF00F3FF) else Color.White)
-            }
-        }
-
-        // Main Content: Signal List and Radar
-        if (state.rescueMode == RescueMode.Rescuer) {
-            RescuerTacticalView(state)
-        } else {
-            VictimBeaconView(state, onStartVictimMode, onStopVictimMode)
-        }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Interactive3DBackground()
         
-        Spacer(Modifier.height(32.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // Top Branding with Glassmorphism
+            GlassCard {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("ECHØRESCUE", color = Color(0xFF00F3FF), fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("GUARDIAN SENTINEL V4.2", color = Color(0xFFFA4DF3), fontSize = 10.sp, letterSpacing = 2.sp)
+                    }
+                    StatusIndicator(state.status == "ONLINE")
+                }
+            }
+
+            // Elegant Mode Toggle
+            GlassToggle(
+                selectedMode = state.rescueMode,
+                onModeSelected = onSelectRescueMode
+            )
+
+            if (state.rescueMode == RescueMode.Rescuer) {
+                RescuerTacticalView(state)
+            } else {
+                VictimBeaconView(state, onStartVictimMode, onStopVictimMode)
+            }
+        }
     }
+}
+
+@Composable
+fun GlassCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White.copy(alpha = 0.03f))
+            .border(1.dp, Brush.linearGradient(listOf(Color.White.copy(alpha = 0.1f), Color.Transparent)), RoundedCornerShape(24.dp))
+    ) {
+        Column(content = content)
+    }
+}
+
+@Composable
+fun GlassToggle(selectedMode: RescueMode, onModeSelected: (RescueMode) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clickable { onModeSelected(RescueMode.Victim) }
+                .background(if (selectedMode == RescueMode.Victim) Color(0xFFFA4DF3).copy(alpha = 0.2f) else Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("VICTIM", color = if (selectedMode == RescueMode.Victim) Color(0xFFFA4DF3) else Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold)
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clickable { onModeSelected(RescueMode.Rescuer) }
+                .background(if (selectedMode == RescueMode.Rescuer) Color(0xFF00F3FF).copy(alpha = 0.2f) else Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("RESCUER", color = if (selectedMode == RescueMode.Rescuer) Color(0xFF00F3FF) else Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun StatusIndicator(isOnline: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        val color = if (isOnline) Color(0xFF9DFF00) else Color.Gray
+        Box(Modifier.size(8.dp).background(color, CircleShape).blur(4.dp))
+        SuspensionIndicator(isOnline)
+        Spacer(Modifier.width(8.dp))
+        Text(if (isOnline) "ONLINE" else "OFFLINE", color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+fun SuspensionIndicator(isOnline: Boolean) {
+    // Just a placeholder for visual effect
 }
 
 @Composable
