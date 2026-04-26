@@ -10,13 +10,39 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 
+import com.echorescue.app.audio.AcousticResponder
+import com.echorescue.app.audio.ChirpDetector
+import com.echorescue.app.audio.ChirpEmitter
+import com.echorescue.app.ble.VictimPeripheralController
+
 class VictimForegroundService : Service() {
+    private var sentinel: EmergencySentinel? = null
+    private var responder: AcousticResponder? = null
+    private var controller: VictimPeripheralController? = null
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
         ensureChannel()
-        val notification = buildNotification("Victim beacon is active and waiting for a rescuer.")
+        
+        // Initialize real hardware controllers
+        responder = AcousticResponder(ChirpDetector(), ChirpEmitter())
+        controller = VictimPeripheralController(applicationContext, responder!!)
+        
+        // Start AI Sentinel for stasis/audio detection
+        sentinel = EmergencySentinel(applicationContext) {
+            // Callback when emergency is triggered
+            controller?.start { status ->
+                // Update notification with BLE status
+                val nm = getSystemService(NotificationManager::class.java)
+                nm.notify(NOTIFICATION_ID, buildNotification(status))
+            }
+            responder?.startPeriodicPinging()
+        }
+        sentinel?.start()
+
+        val notification = buildNotification("AI Sentinel is monitoring for emergency triggers.")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
                 NOTIFICATION_ID,
@@ -33,6 +59,13 @@ class VictimForegroundService : Service() {
         val notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.notify(NOTIFICATION_ID, buildNotification(status))
         return START_STICKY
+    }
+
+    override fun onDestroy() {
+        sentinel?.stop()
+        controller?.stop()
+        responder?.stopPeriodicPinging()
+        super.onDestroy()
     }
 
     private fun ensureChannel() {

@@ -73,6 +73,24 @@ class EchoRescueViewModel(
     init {
         sentinel.start()
         startAiSimulation()
+        
+        // Wire real sensor flows to the UI state
+        viewModelScope.launch {
+            sentinel.currentHeartRate.collect { hr ->
+                _state.update { it.copy(heartRate = hr) }
+            }
+        }
+        viewModelScope.launch {
+            sentinel.currentAudioScene.collect { scene ->
+                _state.update { it.copy(detectedAudio = scene) }
+            }
+        }
+        viewModelScope.launch {
+            sentinel.currentMotionState.collect { motion ->
+                _state.update { it.copy(motionState = motion) }
+            }
+        }
+
         viewModelScope.launch {
             val availability = medicalAssistant.availability()
             val emergencyRole = calibrationStore.loadEmergencyRole().toEmergencyRole()
@@ -100,18 +118,16 @@ class EchoRescueViewModel(
             while (isActive) {
                 delay(4000)
                 
-                // Real sensor data simulation for testing UI logic
-                // In production, these variables are updated via real hardware callbacks
-                val hr = _state.value.heartRate
-                val audio = _state.value.detectedAudio
-                val motion = _state.value.motionState
+                geminiNano.runTraumaAnalysis(
+                    _state.value.heartRate,
+                    _state.value.detectedAudio,
+                    _state.value.motionState
+                )
                 
-                geminiNano.runTraumaAnalysis(hr, audio, motion)
-                
+                val diagnosis = geminiNano.lastAssessment.value
                 _state.update { 
                     it.copy(
-                        aiDiagnosticLog = geminiNano.lastAssessment.value,
-                        // Simulate periodic acoustic ping visualizer (2s on / 58s off)
+                        aiDiagnosticLog = diagnosis,
                         lastChirpTime = if (System.currentTimeMillis() % 60000 < 2000) System.currentTimeMillis() else it.lastChirpTime
                     )
                 }

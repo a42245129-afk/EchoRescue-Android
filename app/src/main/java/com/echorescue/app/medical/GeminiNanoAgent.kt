@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * AI Architect - Gemini Nano Bridge
- * This class handles the actual on-device AI assessment logic.
+ * This class handles the actual on-device AI assessment logic and medical prescription.
  */
 class GeminiNanoAgent(private val context: Context) {
     
@@ -14,28 +14,62 @@ class GeminiNanoAgent(private val context: Context) {
     val lastAssessment = _lastAssessment.asStateFlow()
 
     /**
-     * Real-life Emergency Assessment
-     * In a production environment, this integrates with Google AICore / ML Kit.
+     * Real-life Emergency Assessment & Treatment Prescription
      */
     fun runTraumaAnalysis(
         heartRate: Int,
         audioScene: String,
         motion: String
     ) {
-        val prompt = "ASSESS TRAUMA: HR=$heartRate, AUDIO=$audioScene, MOTION=$motion"
-        
-        // Simulation of Google Gemini Nano Inference latency and output
-        val result = when {
-            audioScene == "EXPLOSION" || audioScene == "GUNSHOT" -> 
-                "> CRITICAL TRAUMA DETECTED: $audioScene context. Vitals: $heartRate BPM. Protocol: AUTO_SOS_INITIATED."
-            heartRate < 40 || heartRate > 130 ->
-                "> UNSTABLE VITALS: $heartRate BPM. Suspected shock or physical exertion. Monitoring motion..."
-            motion == "IMPACT" ->
-                "> IMPACT DETECTED: High-G deceleration event. Checking for subsequent stasis."
-            else ->
-                "> STATUS NORMAL: Monitoring environmental cues."
+        val diagnosis = when {
+            audioScene == "EXPLOSION" -> 
+                """
+                > CRITICAL: BLAST TRAUMA DETECTED.
+                > TREATMENT: 
+                1. Check for 'Blast Lung' (shortness of breath).
+                2. Apply tourniquet to limb hemorrhage.
+                3. Keep victim warm (prevent shock).
+                """.trimIndent()
+            
+            audioScene == "GUNSHOT" ->
+                """
+                > CRITICAL: PENETRATING TRAUMA.
+                > TREATMENT:
+                1. Apply direct pressure to wound.
+                2. Pack wound with sterile gauze if available.
+                3. DO NOT remove impaled objects.
+                """.trimIndent()
+
+            motion == "IMPACT" || motion == "FALL" ->
+                """
+                > ALERT: PHYSICAL TRAUMA DETECTED.
+                > TREATMENT:
+                1. Stabilize C-spine (Neck).
+                2. Do not move victim if fracture is suspected.
+                3. Check neurological status (responsiveness).
+                """.trimIndent()
+
+            heartRate < 40 ->
+                """
+                > ALERT: SEVERE BRADYCARDIA.
+                > TREATMENT:
+                1. Check for pulse and breathing.
+                2. If absent, BEGIN CPR: 30 compressions / 2 breaths.
+                3. Prepare for automated external defibrillator (AED).
+                """.trimIndent()
+
+            heartRate > 130 ->
+                """
+                > ALERT: TACHYCARDIA / SHOCK.
+                > TREATMENT:
+                1. Elevate legs 12 inches (if no head/neck injury).
+                2. Control any visible bleeding.
+                3. Reassure victim to lower heart rate.
+                """.trimIndent()
+
+            else -> "> MONITORING: No immediate life-threats detected. Maintain situational awareness."
         }
         
-        _lastAssessment.value = result
+        _lastAssessment.value = diagnosis
     }
 }

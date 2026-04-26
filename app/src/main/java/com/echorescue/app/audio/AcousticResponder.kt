@@ -8,6 +8,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+import kotlinx.coroutines.isActive
+
 class AcousticResponder(
     private val detector: ChirpDetector,
     private val emitter: ChirpEmitter,
@@ -15,7 +17,24 @@ class AcousticResponder(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var activeJob: Job? = null
+    private var periodicJob: Job? = null
     private var armed = false
+
+    fun startPeriodicPinging() {
+        if (periodicJob != null) return
+        periodicJob = scope.launch {
+            while (isActive) {
+                emitter.emit()
+                // Duty cycle: emit chirp, then sleep for 58s
+                delay(58_000) 
+            }
+        }
+    }
+
+    fun stopPeriodicPinging() {
+        periodicJob?.cancel()
+        periodicJob = null
+    }
 
     suspend fun armForSingleResponse(onStatus: (String) -> Unit) {
         disarm()
@@ -46,6 +65,7 @@ class AcousticResponder(
 
     fun release() {
         disarm()
+        stopPeriodicPinging()
         detector.release()
         scope.cancel()
     }
