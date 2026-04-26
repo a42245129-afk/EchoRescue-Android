@@ -1,6 +1,5 @@
 package com.echorescue.app.ui
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,21 +9,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.*
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -36,34 +33,43 @@ fun TacticalDashboard(
     onStopVictimMode: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    Box(modifier = Modifier.fillMaxSize()) {
-        Interactive3DBackground()
-        
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .systemBarsPadding()
-                .padding(16.dp)
+                .padding(24.dp)
                 .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Top Branding with Glassmorphism
-            GlassCard {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text("ECHØRESCUE", color = Color(0xFF00F3FF), fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
-                        Text("GUARDIAN SENTINEL V4.2", color = Color(0xFFFA4DF3), fontSize = 10.sp, letterSpacing = 2.sp)
-                    }
-                    StatusIndicator(state.status == "ONLINE")
+            // Top Branding
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        "ECHØRESCUE", 
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "GUARDIAN SENTINEL", 
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+                StatusIndicator(state.status == "ONLINE")
             }
 
             // Elegant Mode Toggle
-            GlassToggle(
+            SurfaceToggle(
                 selectedMode = state.rescueMode,
                 onModeSelected = onSelectRescueMode
             )
@@ -78,100 +84,121 @@ fun TacticalDashboard(
 }
 
 @Composable
-fun GlassCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Box(
+fun SurfaceCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(Color.White.copy(alpha = 0.03f))
-            .border(1.dp, Brush.linearGradient(listOf(Color.White.copy(alpha = 0.1f), Color.Transparent)), RoundedCornerShape(24.dp))
-    ) {
-        Column(content = content)
-    }
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
+            .padding(32.dp),
+        content = content
+    )
 }
 
 @Composable
-fun GlassToggle(selectedMode: RescueMode, onModeSelected: (RescueMode) -> Unit) {
+fun SurfaceToggle(selectedMode: RescueMode, onModeSelected: (RescueMode) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White.copy(alpha = 0.05f))
-            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+            .padding(4.dp)
     ) {
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
+                .clip(RoundedCornerShape(12.dp))
                 .clickable { onModeSelected(RescueMode.Victim) }
-                .background(if (selectedMode == RescueMode.Victim) Color(0xFFFA4DF3).copy(alpha = 0.2f) else Color.Transparent),
+                .background(if (selectedMode == RescueMode.Victim) MaterialTheme.colorScheme.outlineVariant else Color.Transparent),
             contentAlignment = Alignment.Center
         ) {
-            Text("VICTIM", color = if (selectedMode == RescueMode.Victim) Color(0xFFFA4DF3) else Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold)
+            Text(
+                "VICTIM", 
+                style = MaterialTheme.typography.labelSmall,
+                color = if (selectedMode == RescueMode.Victim) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
+                .clip(RoundedCornerShape(12.dp))
                 .clickable { onModeSelected(RescueMode.Rescuer) }
-                .background(if (selectedMode == RescueMode.Rescuer) Color(0xFF00F3FF).copy(alpha = 0.2f) else Color.Transparent),
+                .background(if (selectedMode == RescueMode.Rescuer) MaterialTheme.colorScheme.outlineVariant else Color.Transparent),
             contentAlignment = Alignment.Center
         ) {
-            Text("RESCUER", color = if (selectedMode == RescueMode.Rescuer) Color(0xFF00F3FF) else Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Bold)
+            Text(
+                "RESCUER", 
+                style = MaterialTheme.typography.labelSmall,
+                color = if (selectedMode == RescueMode.Rescuer) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
 
 @Composable
 fun StatusIndicator(isOnline: Boolean) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        val color = if (isOnline) Color(0xFF9DFF00) else Color.Gray
-        Box(Modifier.size(8.dp).background(color, CircleShape).blur(4.dp))
-        SuspensionIndicator(isOnline)
+    val color = if (isOnline) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Box(Modifier.size(6.dp).background(color, CircleShape))
         Spacer(Modifier.width(8.dp))
-        Text(if (isOnline) "ONLINE" else "OFFLINE", color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(
+            if (isOnline) "ONLINE" else "OFFLINE", 
+            style = MaterialTheme.typography.labelSmall,
+            color = color
+        )
     }
 }
 
 @Composable
-fun SuspensionIndicator(isOnline: Boolean) {
-    // Just a placeholder for visual effect
-}
-
-@Composable
 fun RescuerTacticalView(state: EchoRescueState) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
         // Victim Signal List
-        Text("DETECTED DISTRESS SIGNALS", color = Color(0xFF00F3FF).copy(alpha = 0.5f), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+        Text(
+            "DETECTED SIGNALS", 
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         
-        SignalItem("ECH-7742", "VICTIM A", "12.4m", Color(0xFFFF0055))
-        SignalItem("ECH-3391", "VICTIM B", "34.7m", Color(0xFFFFC857))
-        SignalItem("ECH-9018", "VICTIM C", "67.2m", Color(0xFF9DFF00))
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            SignalItem("ECH-7742", "VICTIM A", "12.4m", true)
+            SignalItem("ECH-3391", "VICTIM B", "34.7m", false)
+            SignalItem("ECH-9018", "VICTIM C", "67.2m", false)
+        }
 
         // Tactical Radar
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFF08101F))
-                .border(1.dp, Color(0xFF00F3FF).copy(alpha = 0.2f), RoundedCornerShape(16.dp))
-        ) {
-            TacticalRadar(targets = listOf(
-                RadarTarget(45f, 0.4f, Color(0xFFFF0055)),
-                RadarTarget(120f, 0.7f, Color(0xFFFFC857)),
-                RadarTarget(280f, 0.9f, Color(0xFF9DFF00))
-            ))
+        SurfaceCard {
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Text("TACTICAL RADAR", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("100M RANGE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+            }
             
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("TACTICAL RADAR", color = Color(0xFF00F3FF), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Column {
-                        Text("RANGE: 100M", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
-                        Text("VICTIMS: 3", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
-                    }
-                }
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.background)
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+            ) {
+                TacticalRadar(targets = listOf(
+                    RadarTarget(45f, 0.4f, true),
+                    RadarTarget(120f, 0.7f, false),
+                    RadarTarget(280f, 0.9f, false)
+                ))
             }
         }
 
@@ -184,157 +211,270 @@ fun RescuerTacticalView(state: EchoRescueState) {
         // Local AI EMS Agent Card
         EmsAiAgentCard(state)
         
-        // Gemini Nano Analysis
-        GeminiNanoCard(state)
-        
-        // Diagnostic AI Log
-        AiDiagnosticCard(state)
-        
         // Detection Mesh Status
         DetectionMeshCard(state)
     }
 }
 
 @Composable
-fun GeminiNanoCard(state: EchoRescueState) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White.copy(alpha = 0.05f))
-            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
-            .blur(if (state.isBusy) 4.dp else 0.dp)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text("GEMINI_NANO_V2", color = Color(0xFFFA4DF3), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Text("ON-DEVICE AI", color = Color.White.copy(alpha = 0.5f), fontSize = 8.sp)
-        }
-        
-        Text(
-            state.aiDiagnosticLog,
-            color = Color(0xFF00F3FF),
-            fontSize = 13.sp,
-            fontFamily = FontFamily.Monospace,
-            lineHeight = 18.sp
-        )
-    }
-}
-
-@Composable
 fun ActiveTargetCard(state: EchoRescueState) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF0D1430).copy(alpha = 0.5f))
-            .border(1.dp, Color(0xFFFF0055).copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+    SurfaceCard {
+        Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(8.dp).background(Color(0xFFFF0055), CircleShape))
-                Spacer(Modifier.width(8.dp))
-                Text("ACTIVE TARGET - ECH-7742", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+                Spacer(Modifier.width(12.dp))
+                Text("ACTIVE TARGET", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
             }
-            Text("CRITICAL", color = Color(0xFFFF0055), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text("ECH-7742", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            TargetStat("DISTANCE", "12.4m", Color(0xFFFF0055))
-            TargetStat("BEARING", "NNE 22°", Color.White)
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            TargetStat("DISTANCE", "12.4m")
+            TargetStat("BEARING", "NNE 22°")
         }
+        
+        Spacer(modifier = Modifier.height(32.dp))
         
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFF31D0AA).copy(alpha = 0.1f))
-                .border(1.dp, Color(0xFF31D0AA).copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .height(56.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.primary)
                 .clickable { },
             contentAlignment = Alignment.Center
         ) {
-            Text("START NAVIGATION", color = Color(0xFF31D0AA), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Text("START NAVIGATION", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }
 
 @Composable
-fun TargetStat(label: String, value: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, color = Color.White.copy(alpha = 0.5f), fontSize = 8.sp)
-        Text(value, color = color, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, fontFamily = FontFamily.Monospace)
+fun TargetStat(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.Start) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(value, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
     }
 }
 
 @Composable
 fun DetectionMeshCard(state: EchoRescueState) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF08101F))
-            .border(1.dp, Color(0xFF00F3FF).copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
+    SurfaceCard {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text("DETECTION MESH", color = Color(0xFF00F3FF), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Text("7 ACTIVE", color = Color(0xFF9DFF00), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text("DETECTION MESH", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("7 ACTIVE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
         }
         
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MeshStatusItem(this, "BLE 5.3", "-62 dBm", "RSSI + AoA ACTIVE")
-            MeshStatusItem(this, "Wi-Fi RTT", "2.1 ns", "ROUND-TRIP TIME")
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MeshStatusItem(this, "UWB", "±0.1m", "IEEE 802.15.4z")
-            MeshStatusItem(this, "ACOUSTIC", "18 kHz", "ULTRASONIC BEACON")
-        }
-    }
-}
-
-@Composable
-fun MeshStatusItem(rowScope: RowScope, label: String, value: String, desc: String) {
-    with(rowScope) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color.Black.copy(alpha = 0.3f))
-                .padding(8.dp)
-        ) {
-            Text(label, color = Color.White.copy(alpha = 0.5f), fontSize = 8.sp)
-            Text(value, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-            Text(desc, color = Color(0xFF00F3FF).copy(alpha = 0.7f), fontSize = 6.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            MeshStatusItem("BLE 5.3", "-62 dBm", "RSSI + AoA ACTIVE")
+            MeshStatusItem("Wi-Fi RTT", "2.1 ns", "ROUND-TRIP TIME")
+            MeshStatusItem("UWB", "±0.1m", "IEEE 802.15.4z")
+            MeshStatusItem("ACOUSTIC", "18 kHz", "ULTRASONIC BEACON")
         }
     }
 }
 
 @Composable
-fun SignalItem(id: String, name: String, distance: String, color: Color) {
+fun MeshStatusItem(label: String, value: String, desc: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(desc, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text(value, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+    }
+}
+
+@Composable
+fun SignalItem(id: String, name: String, distance: String, isActive: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.05f))
-            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-            .padding(12.dp),
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (isActive) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surface)
+            .border(1.dp, if (isActive) MaterialTheme.colorScheme.outlineVariant else Color.Transparent, RoundedCornerShape(16.dp))
+            .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(12.dp).background(color, CircleShape))
-            Spacer(Modifier.width(12.dp))
+            Box(Modifier.size(8.dp).background(if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, CircleShape))
+            Spacer(Modifier.width(16.dp))
             Column {
-                Text(id, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-                Text(name, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(id, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Text(distance, color = color, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, fontFamily = FontFamily.Monospace)
+        Text(distance, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+    }
+}
+
+@Composable
+fun SensorFusionEngineCard(state: EchoRescueState) {
+    SurfaceCard {
+        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            Text("SENSOR FUSION", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("LOCKED", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+        }
+        
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text("0.7", style = MaterialTheme.typography.displayLarge, color = MaterialTheme.colorScheme.primary)
+            Text("m", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 8.dp, start = 4.dp))
+            Spacer(Modifier.weight(1f))
+            Column(horizontalAlignment = Alignment.End) {
+                Text("CONFIDENCE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("97%", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.outlineVariant)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.97f)
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+        }
+    }
+}
+
+@Composable
+fun EmsAiAgentCard(state: EchoRescueState) {
+    SurfaceCard {
+        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            Text("AI SENTINEL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(Modifier.size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Text(
+            "Vitals monitoring active. High confidence detection for auditory trauma.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            StatusChip("VITALS", "${state.heartRate} BPM")
+            StatusChip("AUDIO", state.detectedAudio)
+            StatusChip("ACCEL", state.motionState)
+        }
+    }
+}
+
+@Composable
+fun StatusChip(label: String, value: String) {
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            .padding(12.dp)
+    ) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(value, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+    }
+}
+
+@Composable
+fun VictimBeaconView(state: EchoRescueState, onStart: () -> Unit, onStop: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Spacer(modifier = Modifier.height(64.dp))
+        
+        // Beacon Status
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("BEACON CODE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("ECH-7742", style = MaterialTheme.typography.displayLarge, color = MaterialTheme.colorScheme.primary)
+        }
+
+        Spacer(modifier = Modifier.height(64.dp))
+        AcousticFrequencyGraph()
+        Spacer(modifier = Modifier.height(64.dp))
+        
+        // Active SOS Beacon Button
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    if (state.victimActive) MaterialTheme.colorScheme.surface
+                    else MaterialTheme.colorScheme.primary
+                )
+                .border(
+                    1.dp,
+                    if (state.victimActive) MaterialTheme.colorScheme.outlineVariant else Color.Transparent,
+                    RoundedCornerShape(16.dp)
+                )
+                .clickable { if (state.victimActive) onStop() else onStart() },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                if (state.victimActive) "DEACTIVATE" else "ACTIVATE BEACON",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (state.victimActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+@Composable
+fun AcousticFrequencyGraph() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
+            .padding(32.dp)
+    ) {
+        Text("ACOUSTIC SPECTRUM", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(modifier = Modifier.height(24.dp))
+        Canvas(modifier = Modifier.fillMaxWidth().height(64.dp)) {
+            val width = size.width
+            val height = size.height
+            val path = Path()
+            path.moveTo(0f, height / 2)
+            for (x in 0..width.toInt() step 5) {
+                val y = height / 2 + (height / 2) * sin(x.toFloat() * 0.1f)
+                path.lineTo(x.toFloat(), y)
+            }
+            drawPath(path, color = Color.White, style = Stroke(width = 2f))
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("DUTY CYCLE: 2s ON", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("PINGING...", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+        }
     }
 }
 
@@ -350,6 +490,9 @@ fun TacticalRadar(targets: List<RadarTarget>) {
         label = "sweep"
     )
 
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+    val primary = MaterialTheme.colorScheme.primary
+
     Canvas(modifier = Modifier.fillMaxSize()) {
         val center = Offset(size.width / 2, size.height / 2)
         val maxRadius = size.minDimension / 2.2f
@@ -357,7 +500,7 @@ fun TacticalRadar(targets: List<RadarTarget>) {
         // Draw Rings
         for (i in 1..4) {
             drawCircle(
-                color = Color(0xFF00F3FF).copy(alpha = 0.1f),
+                color = onSurfaceVariant.copy(alpha = 0.2f),
                 radius = maxRadius * (i / 4f),
                 center = center,
                 style = Stroke(width = 1f)
@@ -365,13 +508,13 @@ fun TacticalRadar(targets: List<RadarTarget>) {
         }
 
         // Draw Axes
-        drawLine(Color(0xFF00F3FF).copy(alpha = 0.1f), Offset(center.x - maxRadius, center.y), Offset(center.x + maxRadius, center.y))
-        drawLine(Color(0xFF00F3FF).copy(alpha = 0.1f), Offset(center.x, center.y - maxRadius), Offset(center.x, center.y + maxRadius))
+        drawLine(onSurfaceVariant.copy(alpha = 0.2f), Offset(center.x - maxRadius, center.y), Offset(center.x + maxRadius, center.y))
+        drawLine(onSurfaceVariant.copy(alpha = 0.2f), Offset(center.x, center.y - maxRadius), Offset(center.x, center.y + maxRadius))
 
         // Draw Sweep
         drawArc(
             brush = Brush.sweepGradient(
-                colors = listOf(Color.Transparent, Color(0xFF00F3FF).copy(alpha = 0.3f)),
+                colors = listOf(Color.Transparent, primary.copy(alpha = 0.15f)),
                 center = center
             ),
             startAngle = sweepAngle - 30f,
@@ -387,13 +530,15 @@ fun TacticalRadar(targets: List<RadarTarget>) {
             val x = center.x + maxRadius * target.distance * cos(rad).toFloat()
             val y = center.y + maxRadius * target.distance * sin(rad).toFloat()
             
+            val targetColor = if (target.isActive) primary else onSurfaceVariant
+
             drawCircle(
-                color = target.color,
+                color = targetColor,
                 radius = 6f,
                 center = Offset(x, y)
             )
             drawCircle(
-                color = target.color.copy(alpha = 0.3f),
+                color = targetColor.copy(alpha = 0.3f),
                 radius = 12f,
                 center = Offset(x, y),
                 style = Stroke(width = 2f)
@@ -402,234 +547,4 @@ fun TacticalRadar(targets: List<RadarTarget>) {
     }
 }
 
-data class RadarTarget(val angle: Float, val distance: Float, val color: Color)
-
-@Composable
-fun SensorFusionEngineCard(state: EchoRescueState) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF0D1430).copy(alpha = 0.8f))
-            .border(1.dp, Color(0xFFFA4DF3).copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text("SENSOR FUSION ENGINE", color = Color(0xFFFA4DF3), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Text("LOCKED", color = Color(0xFF9DFF00), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-        }
-        
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text("0.7", color = Color(0xFF9DFF00), fontSize = 42.sp, fontWeight = FontWeight.ExtraBold, fontFamily = FontFamily.Monospace)
-            Text("m", color = Color(0xFF9DFF00), fontSize = 14.sp, modifier = Modifier.padding(bottom = 8.dp))
-            Spacer(Modifier.weight(1f))
-            Column(horizontalAlignment = Alignment.End) {
-                Text("CONFIDENCE", color = Color.White.copy(alpha = 0.5f), fontSize = 8.sp)
-                Text("97%", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-        
-        LinearProgressIndicator(
-            progress = { 0.97f },
-            modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
-            color = Color(0xFF9DFF00),
-            trackColor = Color.White.copy(alpha = 0.1f)
-        )
-        
-        Spacer(Modifier.height(8.dp))
-        
-        HudDetail("GPS + GLONASS + BeiDou", "±0.8m", Color(0xFF00F3FF))
-        HudDetail("Wi-Fi RTT (802.11mc)", "±0.6m", Color(0xFF00F3FF))
-        HudDetail("BLE 5.3 AoA/AoD", "±0.4m", Color(0xFF00F3FF))
-        HudDetail("IMU Dead Reckoning", "±1.2m", Color(0xFFFA4DF3))
-    }
-}
-
-@Composable
-fun HudDetail(label: String, value: String, color: Color) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = Color.White.copy(alpha = 0.7f), fontSize = 10.sp)
-        Text(value, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-    }
-}
-
-@Composable
-fun EmsAiAgentCard(state: EchoRescueState) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF08101F))
-            .border(1.dp, Color(0xFF00F3FF).copy(alpha = 0.3f), RoundedCornerShape(16.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text("EMS_AI_SENTINEL", color = Color(0xFF00F3FF), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Box(Modifier.size(6.dp).background(Color(0xFF9DFF00), CircleShape))
-        }
-        
-        Text(
-            "Condition assessed via Gemini Nano. Vitals monitoring active. High confidence detection for auditory trauma (Explosion/Scream).",
-            color = Color.White.copy(alpha = 0.7f),
-            fontSize = 11.sp
-        )
-        
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatusChip("VITALS", "${state.heartRate} BPM", if (state.heartRate < 40 || state.heartRate > 120) Color(0xFFFF0055) else Color(0xFF9DFF00))
-            StatusChip("AUDIO", state.detectedAudio, Color(0xFF00F3FF))
-            StatusChip("ACCEL", state.motionState, Color(0xFFFFC857))
-        }
-    }
-}
-
-@Composable
-fun AiDiagnosticCard(state: EchoRescueState) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color.Black)
-            .border(1.dp, Color(0xFF00F3FF).copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-            .padding(12.dp)
-    ) {
-        Text("AI_DIAGNOSTIC_FEED", color = Color(0xFF00F3FF).copy(alpha = 0.5f), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "> ANALYZING SENSORS...\n> HR: ${state.heartRate} BPM (STABLE)\n> AUDIO: ${state.detectedAudio}\n> MOTION: ${state.motionState}\n> NO ANOMALIES DETECTED.",
-            color = Color(0xFF9DFF00).copy(alpha = 0.8f),
-            fontSize = 9.sp,
-            fontFamily = FontFamily.Monospace,
-            lineHeight = 12.sp
-        )
-    }
-}
-
-@Composable
-fun StatusChip(label: String, value: String, color: Color) {
-    Column {
-        Text(label, color = color.copy(alpha = 0.6f), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-        Text(value, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-    }
-}
-
-@Composable
-fun VictimBeaconView(state: EchoRescueState, onStart: () -> Unit, onStop: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Beacon Status Visualizer
-        Box(contentAlignment = Alignment.Center) {
-            val infiniteTransition = rememberInfiniteTransition(label = "beacon_pulse")
-            val radiusScale by infiniteTransition.animateFloat(
-                initialValue = 0.5f,
-                targetValue = 1.5f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(2000),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "radius"
-            )
-            val alpha by infiniteTransition.animateFloat(
-                initialValue = 0.6f,
-                targetValue = 0f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(2000),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "alpha"
-            )
-            
-            Canvas(modifier = Modifier.size(300.dp)) {
-                drawCircle(Color(0xFFFA4DF3).copy(alpha = alpha), radius = 100f * radiusScale, style = Stroke(width = 4f))
-            }
-            
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("BEACON CODE", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
-                Text("ECH-7742", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, fontFamily = FontFamily.Monospace)
-            }
-        }
-
-        Spacer(Modifier.height(24.dp))
-        AcousticFrequencyGraph()
-        Spacer(Modifier.height(24.dp))
-        
-        // Active SOS Beacon Button
-        Box(
-            modifier = Modifier
-                .width(280.dp)
-                .height(60.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(
-                    if (state.victimActive) Color(0xFF0D1430)
-                    else Color(0xFFFF0055)
-                )
-                .border(1.dp, Color.White.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                .clickable { if (state.victimActive) onStop() else onStart() },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                if (state.victimActive) "DEACTIVATE SOS" else "ACTIVATE SOS BEACON",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp
-            )
-        }
-    }
-}
-
-@Composable
-fun AcousticFrequencyGraph() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color.Black.copy(alpha = 0.3f))
-            .border(1.dp, Color(0xFF00F3FF).copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-            .padding(12.dp)
-    ) {
-        Text("ACOUSTIC EMISSION SPECTRUM (20kHz)", color = Color(0xFF00F3FF), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.weight(1f))
-        Canvas(modifier = Modifier.fillMaxWidth().height(40.dp)) {
-            val width = size.width
-            val height = size.height
-            val path = Path()
-            path.moveTo(0f, height / 2)
-            for (x in 0..width.toInt() step 5) {
-                val y = height / 2 + (height / 2) * sin(x.toFloat() * 0.1f)
-                path.lineTo(x.toFloat(), y)
-            }
-            drawPath(path, color = Color(0xFF00F3FF), style = Stroke(width = 2f))
-        }
-        Spacer(Modifier.weight(1f))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("DUTY CYCLE: 2s ON / 58s SLEEP", color = Color.White.copy(alpha = 0.5f), fontSize = 8.sp)
-            Text("STATUS: PINGING...", color = Color(0xFF9DFF00), fontSize = 8.sp, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-fun LinearProgressIndicator(
-    progress: () -> Float,
-    modifier: Modifier = Modifier,
-    color: Color = Color(0xFF00F3FF),
-    trackColor: Color = Color(0xFF0D1430)
-) {
-    Box(
-        modifier = modifier
-            .background(trackColor)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(progress())
-                .background(color)
-        )
-    }
-}
+data class RadarTarget(val angle: Float, val distance: Float, val isActive: Boolean)
