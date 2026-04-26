@@ -1,0 +1,37 @@
+[
+  {
+    "id": "first-aid",
+    "title": "Basic First Aid",
+    "summary": "Primary survey, airway, breathing, circulation, and scene safety.",
+    "keywords": ["first aid", "airway", "breathing", "circulation", "scene safety"],
+    "body": "Ensure the scene is safe before approaching. Check responsiveness, open the airway, assess breathing, and control catastrophic bleeding first. Keep the person warm, reassure them, and arrange evacuation as soon as possible."
+  },
+  {
+    "id": "bleeding",
+    "title": "Severe Bleeding",
+    "summary": "Direct pressure, packing, and tourniquet basics.",
+    "keywords": ["bleeding", "blood", "tourniquet", "pressure", "wound"],
+    "body": "Apply firm direct pressure with clean cloth or bandage. If bleeding is severe from a limb and does not stop, place a tourniquet high and tight above the wound, note the time, and do not remove it until advanced care is available."
+  },
+  {
+    "id": "cpr",
+    "title": "CPR",
+    "summary": "Hands-only CPR for adults when unresponsive and not breathing normally.",
+    "keywords": ["cpr", "compressions", "unresponsive", "cardiac arrest"],
+    "body": "If the person is unresponsive and not breathing normally, begin chest compressions in the center of the chest at a rate of 100 to 120 per minute, about 5 to 6 cm deep in adults, allowing full chest recoil between compressions."
+  },
+  {
+    "id": "burns",
+    "title": "Burn Care",
+    "summary": "Cool the burn, protect the tissue, avoid ice and ointments.",
+    "keywords": ["burn", "scald", "fire", "heat", "blister"],
+    "body": "Cool the burn with cool or lukewarm clean water for at least 20 minutes as soon as possible. Remove tight items like rings if not stuck to the skin. Cover with a clean non-fluffy dressing or plastic wrap. Do not use ice, butter, or break blisters."
+  },
+  {
+    "id": "shock",
+    "title": "Shock",
+    "summary": "Lay flat, keep warm, control bleeding, and monitor breathing.",
+    "keywords": ["shock", "pale", "clammy", "collapse", "weak pulse"],
+    "body": "Lay the person flat if possible, raise legs slightly unless there is trauma or breathing difficulty, control bleeding, keep them warm, and monitor airway and breathing continuously. Do not give food or drink if surgery may be needed."
+  }
+]

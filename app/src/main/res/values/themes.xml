@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Theme.EchoRescue" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:statusBarColor" tools:targetApi="l">#0E324E</item>
+        <item name="android:navigationBarColor">#0E324E</item>
+    </style>
+
+    <style name="Theme.MyApplication" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
