@@ -42,6 +42,7 @@ fun TacticalDashboard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .systemBarsPadding()
                 .padding(16.dp)
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(20.dp)

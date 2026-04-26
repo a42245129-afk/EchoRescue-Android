@@ -75,8 +75,6 @@ fun EchoRescueApp(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Interactive3DBackground()
-        
         TacticalDashboard(
             state = state,
             onSelectRescueMode = onSelectRescueMode,
@@ -475,7 +473,7 @@ private fun MedicalScreen(state: EchoRescueState, onAskMedical: () -> Unit, onQu
 
         InfoCard(title = "Answer stream") {
             Text(
-                state.medicalAnswer.ifBlank { "Response will stream here." },
+                state.medicalAnswer.ifBlank {"Response will stream here."}
                 color = Color.White
             )
         }
