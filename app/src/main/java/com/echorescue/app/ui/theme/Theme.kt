@@ -4,10 +4,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 
-private val EchoRescueColors = darkColorScheme(
+private val EchoRescueDarkColors = darkColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
     primaryContainer = PrimaryContainer,
@@ -38,6 +39,37 @@ private val EchoRescueColors = darkColorScheme(
     outlineVariant = Level1Border,
 )
 
+private val EchoRescueLightColors = lightColorScheme(
+    primary = LightPrimary,
+    onPrimary = LightOnPrimary,
+    primaryContainer = LightPrimaryContainer,
+    onPrimaryContainer = LightOnPrimaryContainer,
+    inversePrimary = LightInversePrimary,
+    secondary = LightSecondary,
+    onSecondary = LightOnSecondary,
+    secondaryContainer = LightSecondaryContainer,
+    onSecondaryContainer = LightOnSecondaryContainer,
+    tertiary = LightTertiary,
+    onTertiary = LightOnTertiary,
+    tertiaryContainer = LightTertiaryContainer,
+    onTertiaryContainer = LightOnTertiaryContainer,
+    background = LightCanvas,
+    onBackground = LightOnBackground,
+    surface = LightLevel1Card,
+    onSurface = LightOnSurface,
+    surfaceVariant = LightSurfaceVariant,
+    onSurfaceVariant = LightOnSurfaceVariant,
+    surfaceTint = LightSurfaceTint,
+    inverseSurface = LightInverseSurface,
+    inverseOnSurface = LightInverseOnSurface,
+    error = LightError,
+    onError = LightOnError,
+    errorContainer = LightErrorContainer,
+    onErrorContainer = LightOnErrorContainer,
+    outline = LightOutline,
+    outlineVariant = LightLevel1Border,
+)
+
 val EchoRescueShapes = Shapes(
     small = RoundedCornerShape(16.dp),
     medium = RoundedCornerShape(16.dp),
@@ -46,9 +78,12 @@ val EchoRescueShapes = Shapes(
 )
 
 @Composable
-fun EchoRescueTheme(content: @Composable () -> Unit) {
+fun EchoRescueTheme(
+    useLightTheme: Boolean = false,
+    content: @Composable () -> Unit
+) {
     MaterialTheme(
-        colorScheme = EchoRescueColors,
+        colorScheme = if (useLightTheme) EchoRescueLightColors else EchoRescueDarkColors,
         typography = EchoRescueTypography,
         shapes = EchoRescueShapes,
         content = content

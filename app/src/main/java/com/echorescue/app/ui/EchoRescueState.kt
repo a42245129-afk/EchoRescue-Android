@@ -44,6 +44,7 @@ data class EchoRescueState(
     val medicalAnswer: String = "",
     val assistantAvailability: AssistantAvailability = AssistantAvailability.FallbackOnly,
     val isBusy: Boolean = false,
+    val useLightTheme: Boolean = false,
     val showLanding: Boolean = true,
     val heartRate: Int = 72,
     val detectedAudio: String = "AMBIENT",

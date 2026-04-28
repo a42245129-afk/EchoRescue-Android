@@ -28,4 +28,12 @@ class CalibrationStore(context: Context) {
     fun saveEmergencyRole(role: String) {
         prefs.edit().putString("emergency_role", role).apply()
     }
+
+    fun loadUseLightTheme(): Boolean {
+        return prefs.getBoolean("use_light_theme", false)
+    }
+
+    fun saveUseLightTheme(useLightTheme: Boolean) {
+        prefs.edit().putBoolean("use_light_theme", useLightTheme).apply()
+    }
 }

@@ -9,11 +9,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.view.WindowCompat
 import com.echorescue.app.ui.EchoRescueApp
 import com.echorescue.app.ui.EchoRescueViewModel
 import com.echorescue.app.ui.theme.EchoRescueTheme
@@ -28,8 +31,18 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            EchoRescueTheme {
-                val state by viewModel.state.collectAsStateWithLifecycle()
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            EchoRescueTheme(useLightTheme = state.useLightTheme) {
+                val colorScheme = androidx.compose.material3.MaterialTheme.colorScheme
+                SideEffect {
+                    window.statusBarColor = colorScheme.background.toArgb()
+                    window.navigationBarColor = colorScheme.background.toArgb()
+                    WindowCompat.getInsetsController(window, window.decorView).apply {
+                        isAppearanceLightStatusBars = state.useLightTheme
+                        isAppearanceLightNavigationBars = state.useLightTheme
+                    }
+                }
+
                 var permissionRequested by remember { mutableStateOf(false) }
                 val permissionLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -76,6 +89,7 @@ class MainActivity : ComponentActivity() {
                     onAskMedical = viewModel::askMedical,
                     onQuestionChange = viewModel::setMedicalQuestion,
                     onDismissLanding = viewModel::dismissLanding,
+                    onToggleLightTheme = viewModel::toggleLightTheme,
                     onRetryPermissions = {
                         val permissions = mutableListOf(
                             Manifest.permission.BLUETOOTH_SCAN,

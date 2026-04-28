@@ -1,7 +1,6 @@
 package com.echorescue.app.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -12,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
@@ -63,8 +63,14 @@ fun LandingScreen(onStart: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF00F3FF).copy(alpha = 0.12f),
+                                Color(0xFFFFC857).copy(alpha = 0.08f)
+                            )
+                        )
+                    )
                     .padding(32.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {

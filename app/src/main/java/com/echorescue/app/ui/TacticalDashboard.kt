@@ -2,7 +2,6 @@ package com.echorescue.app.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.*
 import androidx.compose.ui.geometry.Offset
@@ -30,7 +30,8 @@ fun TacticalDashboard(
     state: EchoRescueState,
     onSelectRescueMode: (RescueMode) -> Unit,
     onStartVictimMode: () -> Unit,
-    onStopVictimMode: () -> Unit
+    onStopVictimMode: () -> Unit,
+    onToggleLightTheme: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     Box(
@@ -65,7 +66,16 @@ fun TacticalDashboard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                StatusIndicator(state.status == "ONLINE")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ThemeToggle(
+                        useLightTheme = state.useLightTheme,
+                        onToggle = onToggleLightTheme
+                    )
+                    StatusIndicator(state.status == "ONLINE")
+                }
             }
 
             // Elegant Mode Toggle
@@ -84,13 +94,44 @@ fun TacticalDashboard(
 }
 
 @Composable
-fun SurfaceCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun ThemeToggle(useLightTheme: Boolean, onToggle: () -> Unit) {
+    val tint = if (useLightTheme) Color(0xFFFFC857) else Color(0xFF00F3FF)
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(tint.copy(alpha = 0.12f))
+            .clickable { onToggle() }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .background(tint, CircleShape)
+        )
+        Text(
+            text = if (useLightTheme) "LIGHT" else "DARK",
+            style = MaterialTheme.typography.labelSmall,
+            color = tint
+        )
+    }
+}
+
+@Composable
+fun SurfaceCard(modifier: Modifier = Modifier, tintColor: Color? = null, content: @Composable ColumnScope.() -> Unit) {
+    val bgColor = tintColor?.copy(alpha = 0.12f) ?: MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+    val topWash = tintColor?.copy(alpha = 0.06f) ?: Color.White.copy(alpha = 0.02f)
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(topWash, bgColor)
+                )
+            )
             .padding(32.dp),
         content = content
     )
@@ -103,8 +144,7 @@ fun SurfaceToggle(selectedMode: RescueMode, onModeSelected: (RescueMode) -> Unit
             .fillMaxWidth()
             .height(56.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
             .padding(4.dp)
     ) {
         Box(
@@ -113,7 +153,7 @@ fun SurfaceToggle(selectedMode: RescueMode, onModeSelected: (RescueMode) -> Unit
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(12.dp))
                 .clickable { onModeSelected(RescueMode.Victim) }
-                .background(if (selectedMode == RescueMode.Victim) MaterialTheme.colorScheme.outlineVariant else Color.Transparent),
+                .background(if (selectedMode == RescueMode.Victim) Color(0xFFFA4DF3).copy(alpha = 0.18f) else Color.Transparent),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -128,7 +168,7 @@ fun SurfaceToggle(selectedMode: RescueMode, onModeSelected: (RescueMode) -> Unit
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(12.dp))
                 .clickable { onModeSelected(RescueMode.Rescuer) }
-                .background(if (selectedMode == RescueMode.Rescuer) MaterialTheme.colorScheme.outlineVariant else Color.Transparent),
+                .background(if (selectedMode == RescueMode.Rescuer) Color(0xFF00F3FF).copy(alpha = 0.16f) else Color.Transparent),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -147,8 +187,7 @@ fun StatusIndicator(isOnline: Boolean) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+            .background(color.copy(alpha = 0.12f))
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
         Box(Modifier.size(6.dp).background(color, CircleShape))
@@ -163,6 +202,17 @@ fun StatusIndicator(isOnline: Boolean) {
 
 @Composable
 fun RescuerTacticalView(state: EchoRescueState) {
+    val activeDistance = if (state.distanceMeters > 0) (state.distanceMeters / 100.0).coerceIn(0.12, 0.95).toFloat() else 0.4f
+    val radarTargets = if (state.connectedVictimName != null || state.distanceMeters > 0.0) {
+        listOf(
+            RadarTarget(45f, activeDistance, true, Color(0xFFFF0055)),
+            RadarTarget(120f, 0.7f, false, Color(0xFFFFC857)),
+            RadarTarget(280f, 0.9f, false, Color(0xFF9DFF00))
+        )
+    } else {
+        emptyList()
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
         // Victim Signal List
         Text(
@@ -172,15 +222,15 @@ fun RescuerTacticalView(state: EchoRescueState) {
         )
         
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            SignalItem("ECH-7742", "VICTIM A", "12.4m", true)
-            SignalItem("ECH-3391", "VICTIM B", "34.7m", false)
-            SignalItem("ECH-9018", "VICTIM C", "67.2m", false)
+            SignalItem("ECH-7742", "VICTIM A", "12.4m", true, Color(0xFFFF0055))
+            SignalItem("ECH-3391", "VICTIM B", "34.7m", false, Color(0xFFFFC857))
+            SignalItem("ECH-9018", "VICTIM C", "67.2m", false, Color(0xFF9DFF00))
         }
 
-        // Tactical Radar
-        SurfaceCard {
+        // Proximity Tracker
+        SurfaceCard(tintColor = Color(0xFF00F3FF)) {
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text("TACTICAL RADAR", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("PROXIMITY TRACKER", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("100M RANGE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
             }
             
@@ -191,14 +241,36 @@ fun RescuerTacticalView(state: EchoRescueState) {
                     .fillMaxWidth()
                     .height(300.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.background)
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                Color(0xFF00F3FF).copy(alpha = 0.10f),
+                                MaterialTheme.colorScheme.background
+                            )
+                        )
+                    )
             ) {
-                TacticalRadar(targets = listOf(
-                    RadarTarget(45f, 0.4f, true),
-                    RadarTarget(120f, 0.7f, false),
-                    RadarTarget(280f, 0.9f, false)
-                ))
+                ProximityVisualizer(targets = radarTargets)
+
+                if (radarTargets.isEmpty()) {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "AWAITING SIGNAL",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Scan for a victim to activate the proximity tracker.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             }
         }
 
@@ -218,7 +290,7 @@ fun RescuerTacticalView(state: EchoRescueState) {
 
 @Composable
 fun ActiveTargetCard(state: EchoRescueState) {
-    SurfaceCard {
+    SurfaceCard(tintColor = Color(0xFFFF0055)) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
@@ -262,7 +334,7 @@ fun TargetStat(label: String, value: String) {
 
 @Composable
 fun DetectionMeshCard(state: EchoRescueState) {
-    SurfaceCard {
+    SurfaceCard(tintColor = Color(0xFF00F3FF)) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Text("DETECTION MESH", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("7 ACTIVE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
@@ -296,33 +368,32 @@ fun MeshStatusItem(label: String, value: String, desc: String) {
 }
 
 @Composable
-fun SignalItem(id: String, name: String, distance: String, isActive: Boolean) {
+fun SignalItem(id: String, name: String, distance: String, isActive: Boolean, tintColor: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(if (isActive) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surface)
-            .border(1.dp, if (isActive) MaterialTheme.colorScheme.outlineVariant else Color.Transparent, RoundedCornerShape(16.dp))
+            .background(tintColor.copy(alpha = 0.08f))
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(8.dp).background(if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant, CircleShape))
+            Box(Modifier.size(8.dp).background(tintColor, CircleShape))
             Spacer(Modifier.width(16.dp))
             Column {
-                Text(id, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+                Text(id, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Text(distance, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+        Text(distance, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
 @Composable
 fun SensorFusionEngineCard(state: EchoRescueState) {
-    SurfaceCard {
+    SurfaceCard(tintColor = Color(0xFFFFC857)) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Text("SENSOR FUSION", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("LOCKED", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
@@ -362,10 +433,11 @@ fun SensorFusionEngineCard(state: EchoRescueState) {
 
 @Composable
 fun EmsAiAgentCard(state: EchoRescueState) {
-    SurfaceCard {
+    val tintColor = Color(0xFF9DFF00)
+    SurfaceCard(tintColor = tintColor) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Text("AI SENTINEL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Box(Modifier.size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+            Box(Modifier.size(6.dp).background(tintColor, CircleShape))
         }
         
         Spacer(modifier = Modifier.height(24.dp))
@@ -379,24 +451,24 @@ fun EmsAiAgentCard(state: EchoRescueState) {
         Spacer(modifier = Modifier.height(24.dp))
         
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            StatusChip("VITALS", "${state.heartRate} BPM")
-            StatusChip("AUDIO", state.detectedAudio)
-            StatusChip("ACCEL", state.motionState)
+            StatusChip("VITALS", "${state.heartRate} BPM", Color(0xFFFF0055))
+            StatusChip("AUDIO", state.detectedAudio, Color(0xFF00F3FF))
+            StatusChip("ACCEL", state.motionState, Color(0xFFFFC857))
         }
     }
 }
 
 @Composable
-fun StatusChip(label: String, value: String) {
+fun StatusChip(label: String, value: String, tintColor: Color) {
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            .background(tintColor.copy(alpha = 0.10f))
             .padding(12.dp)
     ) {
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.height(8.dp))
-        Text(value, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+        Text(value, style = MaterialTheme.typography.bodyLarge, color = tintColor)
     }
 }
 
@@ -421,19 +493,15 @@ fun VictimBeaconView(state: EchoRescueState, onStart: () -> Unit, onStop: () -> 
         Spacer(modifier = Modifier.height(64.dp))
         
         // Active SOS Beacon Button
+        val beaconColor = Color(0xFFFA4DF3)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(
-                    if (state.victimActive) MaterialTheme.colorScheme.surface
-                    else MaterialTheme.colorScheme.primary
-                )
-                .border(
-                    1.dp,
-                    if (state.victimActive) MaterialTheme.colorScheme.outlineVariant else Color.Transparent,
-                    RoundedCornerShape(16.dp)
+                    if (state.victimActive) beaconColor.copy(alpha = 0.2f)
+                    else beaconColor.copy(alpha = 0.08f)
                 )
                 .clickable { if (state.victimActive) onStop() else onStart() },
             contentAlignment = Alignment.Center
@@ -441,7 +509,7 @@ fun VictimBeaconView(state: EchoRescueState, onStart: () -> Unit, onStop: () -> 
             Text(
                 if (state.victimActive) "DEACTIVATE" else "ACTIVATE BEACON",
                 style = MaterialTheme.typography.labelSmall,
-                color = if (state.victimActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
+                color = beaconColor
             )
         }
     }
@@ -453,12 +521,12 @@ fun AcousticFrequencyGraph() {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
+            .background(Color(0xFF00F3FF).copy(alpha = 0.08f))
             .padding(32.dp)
     ) {
         Text("ACOUSTIC SPECTRUM", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.height(24.dp))
+        val waveColor = MaterialTheme.colorScheme.primary
         Canvas(modifier = Modifier.fillMaxWidth().height(64.dp)) {
             val width = size.width
             val height = size.height
@@ -468,26 +536,26 @@ fun AcousticFrequencyGraph() {
                 val y = height / 2 + (height / 2) * sin(x.toFloat() * 0.1f)
                 path.lineTo(x.toFloat(), y)
             }
-            drawPath(path, color = Color.White, style = Stroke(width = 2f))
+            drawPath(path, color = waveColor, style = Stroke(width = 2f))
         }
         Spacer(modifier = Modifier.height(24.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("DUTY CYCLE: 2s ON", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text("PINGING...", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+            Text("PINGING...", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
 
 @Composable
-fun TacticalRadar(targets: List<RadarTarget>) {
-    val infiniteTransition = rememberInfiniteTransition(label = "radar_sweep")
-    val sweepAngle by infiniteTransition.animateFloat(
+fun ProximityVisualizer(targets: List<RadarTarget>) {
+    val infiniteTransition = rememberInfiniteTransition(label = "ping")
+    val pingProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 360f,
+        targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = LinearEasing)
+            animation = tween(2000, easing = LinearOutSlowInEasing)
         ),
-        label = "sweep"
+        label = "ping_progress"
     )
 
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
@@ -497,31 +565,35 @@ fun TacticalRadar(targets: List<RadarTarget>) {
         val center = Offset(size.width / 2, size.height / 2)
         val maxRadius = size.minDimension / 2.2f
 
-        // Draw Rings
+        // Draw distance rings with dashed lines
         for (i in 1..4) {
             drawCircle(
-                color = onSurfaceVariant.copy(alpha = 0.2f),
+                color = onSurfaceVariant.copy(alpha = 0.1f),
                 radius = maxRadius * (i / 4f),
                 center = center,
-                style = Stroke(width = 1f)
+                style = Stroke(
+                    width = 2f, 
+                    pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
+                )
             )
         }
 
-        // Draw Axes
-        drawLine(onSurfaceVariant.copy(alpha = 0.2f), Offset(center.x - maxRadius, center.y), Offset(center.x + maxRadius, center.y))
-        drawLine(onSurfaceVariant.copy(alpha = 0.2f), Offset(center.x, center.y - maxRadius), Offset(center.x, center.y + maxRadius))
+        // Draw crosshairs instead of axes
+        val crosshairLength = 10f
+        drawLine(onSurfaceVariant.copy(alpha = 0.3f), Offset(center.x - crosshairLength, center.y), Offset(center.x + crosshairLength, center.y), strokeWidth = 2f)
+        drawLine(onSurfaceVariant.copy(alpha = 0.3f), Offset(center.x, center.y - crosshairLength), Offset(center.x, center.y + crosshairLength), strokeWidth = 2f)
 
-        // Draw Sweep
-        drawArc(
-            brush = Brush.sweepGradient(
-                colors = listOf(Color.Transparent, primary.copy(alpha = 0.15f)),
-                center = center
-            ),
-            startAngle = sweepAngle - 30f,
-            sweepAngle = 30f,
-            useCenter = true,
-            topLeft = Offset(center.x - maxRadius, center.y - maxRadius),
-            size = androidx.compose.ui.geometry.Size(maxRadius * 2, maxRadius * 2)
+        // Draw expanding ping (acoustic wave)
+        drawCircle(
+            color = primary.copy(alpha = (1f - pingProgress) * 0.4f),
+            radius = maxRadius * pingProgress,
+            center = center,
+            style = Stroke(width = 4f)
+        )
+        drawCircle(
+            color = primary.copy(alpha = (1f - pingProgress) * 0.1f),
+            radius = maxRadius * pingProgress,
+            center = center
         )
 
         // Draw Targets
@@ -530,21 +602,36 @@ fun TacticalRadar(targets: List<RadarTarget>) {
             val x = center.x + maxRadius * target.distance * cos(rad).toFloat()
             val y = center.y + maxRadius * target.distance * sin(rad).toFloat()
             
-            val targetColor = if (target.isActive) primary else onSurfaceVariant
+            val targetColor = if (target.isActive) target.tintColor else target.tintColor.copy(alpha = 0.6f)
+
+            // React to the ping passing by
+            val distanceDiff = kotlin.math.abs(pingProgress - target.distance)
+            val isPingNear = distanceDiff < 0.1f
+            val pulseAlpha = if (isPingNear) 0.8f * (1f - distanceDiff * 10f) else 0.2f
+            val pulseRadius = if (isPingNear) 24f - (distanceDiff * 100f) else 12f
 
             drawCircle(
-                color = targetColor,
-                radius = 6f,
+                color = targetColor.copy(alpha = pulseAlpha),
+                radius = pulseRadius,
                 center = Offset(x, y)
             )
+            
             drawCircle(
-                color = targetColor.copy(alpha = 0.3f),
-                radius = 12f,
-                center = Offset(x, y),
-                style = Stroke(width = 2f)
+                color = targetColor,
+                radius = 8f,
+                center = Offset(x, y)
             )
+            
+            if (target.isActive) {
+                 drawCircle(
+                    color = targetColor.copy(alpha = 0.4f),
+                    radius = 16f,
+                    center = Offset(x, y),
+                    style = Stroke(width = 2f)
+                )
+            }
         }
     }
 }
 
-data class RadarTarget(val angle: Float, val distance: Float, val isActive: Boolean)
+data class RadarTarget(val angle: Float, val distance: Float, val isActive: Boolean, val tintColor: Color)

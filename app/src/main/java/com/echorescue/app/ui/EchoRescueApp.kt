@@ -67,6 +67,7 @@ fun EchoRescueApp(
     onAskMedical: () -> Unit,
     onQuestionChange: (String) -> Unit,
     onDismissLanding: () -> Unit,
+    onToggleLightTheme: () -> Unit,
     onRetryPermissions: () -> Unit
 ) {
     if (state.showLanding) {
@@ -79,7 +80,8 @@ fun EchoRescueApp(
             state = state,
             onSelectRescueMode = onSelectRescueMode,
             onStartVictimMode = onStartVictimMode,
-            onStopVictimMode = onStopVictimMode
+            onStopVictimMode = onStopVictimMode,
+            onToggleLightTheme = onToggleLightTheme
         )
     }
 }

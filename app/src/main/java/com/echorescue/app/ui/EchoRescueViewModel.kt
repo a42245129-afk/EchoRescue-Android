@@ -67,7 +67,11 @@ class EchoRescueViewModel(
         profileProvider = deviceProfileManager::currentProfile
     )
 
-    private val _state = MutableStateFlow(EchoRescueState())
+    private val _state = MutableStateFlow(
+        EchoRescueState(
+            useLightTheme = calibrationStore.loadUseLightTheme()
+        )
+    )
     val state: StateFlow<EchoRescueState> = _state.asStateFlow()
 
     init {
@@ -137,6 +141,14 @@ class EchoRescueViewModel(
 
     fun dismissLanding() {
         _state.update { it.copy(showLanding = false) }
+    }
+
+    fun toggleLightTheme() {
+        _state.update {
+            val next = !it.useLightTheme
+            calibrationStore.saveUseLightTheme(next)
+            it.copy(useLightTheme = next)
+        }
     }
 
     fun selectRescueMode(mode: RescueMode) {
